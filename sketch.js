@@ -1,19 +1,33 @@
-let grid, cols, rows, mineCount, revealedCount;
-let w = 20;
+let grid,
+  cols,
+  rows,
+  mineCount,
+  revealedCount,
+  remainingFlags = 0;
+let w = 30;
 let Minefactor = 0.1;
-let  tileImg,emptyTile,bombImg
-let isGameOver =false;
-let font
+let tileImg, emptyTile, bombImg, flagImg;
+let isGameOver = false;
+let font;
+let flagDiv;
 
-function preload(){
-  tileImg = loadImage('../src/tile.png')
-  emptyTile = loadImage('../src/tile1.png')
-  bombImg = loadImage('../src/bomb.png')
-  font = loadFont('../src/font.ttf')
+function preload() {
+  tileImg = loadImage("../src/tile.png");
+  emptyTile = loadImage("../src/tile1.png");
+  bombImg = loadImage("../src/bomb.png");
+  flagImg = loadImage("../src/flag.png");
+  font = loadFont("../src/font.ttf");
 }
 function setup() {
-  createCanvas(401, 401);
-  frameRate(5)
+  fill(200);
+  topBar = createDiv("");
+  flagDiv = createDiv("No of flags left : " + remainingFlags);
+  topBar.elt.className = "topBar";
+  flagDiv.elt.className = "topBarText";
+  topBar.elt.append(flagDiv.elt);
+
+  createCanvas(601, 601);
+  frameRate(5);
   cols = floor(width / w);
   rows = floor(height / w);
   grid = new Array(cols);
@@ -44,13 +58,16 @@ function setup() {
       }
     }
   }
+  remainingFlags = floor(rows * cols * Minefactor);
+  flagDiv.elt.innerHTML = "No of flags left : " + remainingFlags;
 }
 
 function gameOver() {
   for (let i = 0; i < cols; i++) {
     for (let j = 0; j < rows; j++) {
-      grid[i][j].isMine ? grid[i][j].isRevealed = true:''
-      isGameOver = true
+      grid[i][j].isFlagged ? (grid[i][j].isFlagged = false) : "";
+      grid[i][j].isMine ? (grid[i][j].isRevealed = true) : "";
+      isGameOver = true;
     }
   }
 }
@@ -58,12 +75,16 @@ function mousePressed(e) {
   for (let i = 0; i < cols; i++) {
     for (let j = 0; j < rows; j++) {
       if (grid[i][j].contains(mouseX, mouseY) && !isGameOver) {
-        if (e.metaKey) {
-             console.log('hi')
-        } else {
+        if (e.metaKey && remainingFlags > 0 && !grid[i][j].isRevealed) {
+          grid[i][j].isFlagged = grid[i][j].isFlagged ? false : true;
+          grid[i][j].isFlagged ? remainingFlags-- : remainingFlags++;
+
+          flagDiv.elt.innerHTML = "No of flags left : " + remainingFlags;
+        } else if (!grid[i][j].isFlagged && !(remainingFlags == 0 && e.metaKey)) {
           grid[i][j].isRevealed ? " " : grid[i][j].reveal();
+
           if (grid[i][j].isMine) {
-            grid[i][j].isMineActive = true
+            grid[i][j].isMineActive = true;
             gameOver();
           }
         }
@@ -78,7 +99,6 @@ function draw() {
       grid[i][j].show();
     }
   }
-  if(mouseIsPressed){
-
+  if (mouseIsPressed) {
   }
 }
