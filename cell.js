@@ -20,6 +20,7 @@ function Cell(i, j, w) {
   this.isMine = false;
   this.isRevealed = false;
   this.isMineActive = false;
+  this.isQueued = false
 
   this.neighbourCount = 0;
 
@@ -56,13 +57,17 @@ function Cell(i, j, w) {
 
   this.reveal = () => {
     this.isRevealed = true;
-    revealedCount++;
+    revealedArray.push(grid[this.i][this.j])
     setTimeout(() => {
-      if (revealedCount + mineCount == rows * cols) alert("Congratulations You Won");
+      if (revealedArray.length + mineCount == rows * cols) alert("Congratulations You Won");
     }, 10);
     if (this.neighbourCount == 0) {
       // flood fill time
       this.floodFill();
+    }
+    else {
+      uncheckedCellQueue.push(grid[i][j])
+      this.isQueued = true
     }
   };
   this.floodFill = () => {

@@ -2,7 +2,6 @@ let grid,
   cols,
   rows,
   mineCount,
-  revealedCount,
   remainingFlags = 0;
 let w = 30;
 let Minefactor = 0.1;
@@ -10,6 +9,9 @@ let tileImg, emptyTile, bombImg, flagImg;
 let isGameOver = false;
 let font;
 let flagDiv;
+let revealedArray = [],
+  confirmedBombs = [],
+  uncheckedCellQueue = [];
 
 function preload() {
   tileImg = loadImage("../src/tile.png");
@@ -27,11 +29,21 @@ function setup() {
   topBar.elt.append(flagDiv.elt);
 
   createCanvas(601, 601);
+  let activateAI = createButton("Activate Ai");
+  activateAI.mousePressed(_ => {
+    let ai = new AI();
+    uncheckedCellQueue.forEach(ele=>{
+      ai.checkForBombs(grid,ele.i,ele.j);
+    })
+  });
+  col = color(127, 0.5);
+  activateAI.style("background-color", col);
+  activateAI.style("outline-width", 0);
+  activateAI.elt.className = "activateButton";
   frameRate(5);
   cols = floor(width / w);
   rows = floor(height / w);
   grid = new Array(cols);
-  revealedCount = 0;
   for (let i = 0; i < grid.length; i++) {
     grid[i] = new Array(rows);
   }
@@ -76,12 +88,11 @@ function mousePressed(e) {
     for (let j = 0; j < rows; j++) {
       if (grid[i][j].contains(mouseX, mouseY) && !isGameOver) {
         if (e.metaKey && remainingFlags > 0 && !grid[i][j].isRevealed) {
-          grid[i][j].isFlagged = grid[i][j].isFlagged ? false : true;
-          grid[i][j].isFlagged ? remainingFlags-- : remainingFlags++;
-
-          flagDiv.elt.innerHTML = "No of flags left : " + remainingFlags;
+          setFlagAt(i, j);
         } else if (!grid[i][j].isFlagged && !(remainingFlags == 0 && e.metaKey)) {
-          grid[i][j].isRevealed ? " " : grid[i][j].reveal();
+          if (!grid[i][j].isRevealed) {
+            grid[i][j].reveal();
+          }
 
           if (grid[i][j].isMine) {
             grid[i][j].isMineActive = true;
@@ -91,6 +102,18 @@ function mousePressed(e) {
       }
     }
   }
+}
+function setFlagAt(i, j,unflag = true) {
+  if(unflag){
+    grid[i][j].isFlagged = grid[i][j].isFlagged  ? false : true;
+    grid[i][j].isFlagged ? remainingFlags-- : remainingFlags++;
+  }
+  else{
+    grid[i][j].isFlagged ? '': remainingFlags--
+    grid[i][j].isFlagged = true;
+
+  }
+  flagDiv.elt.innerHTML = "No of flags left : " + remainingFlags;
 }
 
 function draw() {
