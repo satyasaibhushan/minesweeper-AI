@@ -84,4 +84,15 @@ function Cell(i, j, w) {
       }
     }
   };
+  this.surroundingFlags=()=>{
+    let flagCount = 0
+    for (let x = -1; x < 2; x++) {
+      for (let y = -1; y < 2; y++) {
+        if (grid[i + x] &&grid[i + x][y + j] && grid[i + x][y + j].isFlagged) {
+          flagCount++
+        }
+      }
+    }
+    return flagCount;
+  }
 }

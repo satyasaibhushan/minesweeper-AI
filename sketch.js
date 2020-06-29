@@ -32,9 +32,14 @@ function setup() {
   let activateAI = createButton("Activate Ai");
   activateAI.mousePressed(_ => {
     let ai = new AI();
-    uncheckedCellQueue.forEach(ele=>{
-      ai.checkForBombs(grid,ele.i,ele.j);
-    })
+
+    for (let index = uncheckedCellQueue.length-1; index >=0; index--) {
+      ai.checkForRule1(grid,uncheckedCellQueue[index].i,uncheckedCellQueue[index].j);
+    }
+    for (let index = uncheckedCellQueue.length-1; index >=0; index--) {
+      ai.checkForRule2(grid,uncheckedCellQueue[index].i,uncheckedCellQueue[index].j);
+    }
+
   });
   col = color(127, 0.5);
   activateAI.style("background-color", col);
