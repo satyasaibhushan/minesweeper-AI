@@ -4,7 +4,7 @@ let grid,
   mineCount,
   remainingFlags = 0;
 let w = 30;
-let Minefactor = 0.1;
+let Minefactor = 0.17;
 let tileImg, emptyTile, bombImg, flagImg;
 let isGameOver = false;
 let font;
@@ -30,17 +30,19 @@ function setup() {
 
   createCanvas(601, 601);
   let activateAI = createButton("Activate Ai");
+  let ai = new AI();
   activateAI.mousePressed(_ => {
-    let ai = new AI();
-
     for (let index = uncheckedCellQueue.length-1; index >=0; index--) {
       ai.checkForRule1(grid,uncheckedCellQueue[index].i,uncheckedCellQueue[index].j);
     }
     for (let index = uncheckedCellQueue.length-1; index >=0; index--) {
       ai.checkForRule2(grid,uncheckedCellQueue[index].i,uncheckedCellQueue[index].j);
     }
-
   });
+  let rule3  = createButton("Activate Ai 3rd Degree");
+  rule3.mousePressed(_=>{
+    ai.checkForRule3(grid,uncheckedCellQueue)
+  })
   col = color(127, 0.5);
   activateAI.style("background-color", col);
   activateAI.style("outline-width", 0);
