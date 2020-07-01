@@ -36,61 +36,25 @@ function AI() {
     let tripletLinks = getLinks(queue);
     tripletLinks.forEach(triplet => {
       let unrevealedNeighbours = [],
-        remainingSurroundingBombCount = [];
+        unrevealedNeighbourIndices = [];
+      remainingSurroundingBombCount = [];
       triplet.forEach(ele => {
         unrevealedNeighbours.push(calculateUnrevealedNeighbours(grid, ele.i, ele.j).filter(ele => !ele.isFlagged));
         remainingSurroundingBombCount.push(ele.neighbourCount - ele.surroundingFlags());
       });
-      console.log(unrevealedNeighbours, remainingSurroundingBombCount);
-      checkForLinkedBombs(unrevealedNeighbours, remainingSurroundingBombCount);
+      unrevealedNeighbours.forEach(array => {
+        let indeces = [];
+        array.forEach((ele, index) => {
+          indeces[index] = {};
+          indeces[index].i = ele.i;
+          indeces[index].j = ele.j;
+          indeces[index].isConstraint = true;
+          indeces[index].constraintValue = "";
+        });
+        unrevealedNeighbourIndices.push(indeces);
+      });
+     console.log (checkForLinkedBombs(unrevealedNeighbourIndices, remainingSurroundingBombCount));
     });
-    // let iSameChuncks = [],
-    //   jSameChuncks = [];
-    // let k = 0;
-    // let iOrder = [...queue].sort((a, b) => {
-    //   if (a.i != b.i) return a.i - b.i;
-    //   else return a.j - b.j;
-    // });
-    // let jOrder = [...queue].sort((a, b) => {
-    //   if (a.j != b.j) return a.j - b.j;
-    //   else return a.i - b.i;
-    // });
-    // iOrder.forEach((ele, x) => {
-    //   iOrder[x - 1] &&
-    //   iOrder[x] &&
-    //   iOrder[x + 1] &&
-    //   iOrder[x - 1].i == iOrder[x].i &&
-    //   iOrder[x].i == iOrder[x + 1].i &&
-    //   iOrder[x - 1].j + 1 == iOrder[x].j &&
-    //   iOrder[x].j + 1 == iOrder[x + 1].j
-    //     ? iSameChuncks.push([iOrder[x - 1], iOrder[x], iOrder[x + 1]])
-    //     : "";
-    // });
-    // jOrder.forEach((ele, y) => {
-    //   jOrder[y - 1] &&
-    //   jOrder[y] &&
-    //   jOrder[y + 1] &&
-    //   jOrder[y - 1].j == jOrder[y].j &&
-    //   jOrder[y].j == jOrder[y + 1].j &&
-    //   jOrder[y - 1].i + 1 == jOrder[y].i &&
-    //   jOrder[y].i + 1 == jOrder[y + 1].i
-    //     ? jSameChuncks.push([jOrder[y - 1], jOrder[y], jOrder[y + 1]])
-    //     : "";
-    // });
-    // console.log(queue, iOrder, jOrder, iSameChuncks, jSameChuncks);
-    // while (k == 0 && iSameChuncks.length > 0) {
-    //   let unrevealedNeighbours = [],
-    //     remainingSurroundingBombCount = [],
-    //     unrevealedNeighboursj = [];
-    //   iSameChuncks[0].forEach(ele => {
-    //     unrevealedNeighbours.push(calculateUnrevealedNeighbours(grid, ele.i, ele.j).filter(ele => !ele.isFlagged));
-    //     unrevealedNeighboursj = unrevealedNeighbours.map(ele => ele.j);
-    //     remainingSurroundingBombCount.push(ele.neighbourCount - ele.surroundingFlags());
-    //   });
-    //   console.log(unrevealedNeighbours, remainingSurroundingBombCount);
-
-    //   k = 1;
-    // }
   };
   let calculateUnrevealedNeighbours = (grid, i, j) => {
     let neighbours = [];
@@ -122,7 +86,6 @@ function AI() {
             grid[ele.i + x][y + ele.j].isRevealed &&
             grid[ele.i + x][ele.j + y].isQueued
           ) {
-            console.log(grid[ele.i + x][y + ele.j]);
             triplet.push(grid[ele.i + x][y + ele.j]);
           }
         }
@@ -131,22 +94,125 @@ function AI() {
     });
     return links;
   };
-  let checkForLinkedBombs = (linksArray, bombCountArray) => {
-    let confirmedLinks = [],
-      possibilitiesFor1sttrue = [],
-      possibilitiesFor1stfalse = [],
-      possibilities;
-    let union = [];
-    let linkPositions = [];
-    linksArray.forEach((link, i) => {
-      union = [...new Set([...union, ...linksArray[i]])];
-    });
-    union.forEach((ele, i) => {
-      linksArray.forEach((link, index) => {
-        positions[index] = link.indexOf(ele);
-      });
-    });
 
-    console.log(union, linkPositions);
+
+  let checkForLinkedBombs = (linksArray, bombCountArray) => {
+    let possibilities = new Array (linksArray.length),
+      combinationCount = 0;
+    console.log(1, linksArray, bombCountArray);
+    let tempLinksArray = JSON.parse(JSON.stringify(linksArray));
+    let tempBombCount = JSON.parse(JSON.stringify(bombCountArray));
+    
+    if(linksArray == null) {
+        console.log('null recieved')
+        return null
+    }
+
+    else
+    for (let i = 0; i < linksArray.length; i++) {  
+        let link = linksArray[i];
+        console.log([...link].filter(ele => ele.constraintValue||ele.constraintValue==='').length,bombCountArray[i])
+        possibilities.push(new Array(link.length))
+        if(tempLinksArray==null || linksArray ==null){
+            return null
+        }
+      else if ([...link].filter(ele => ele.constraintValue||ele.constraintValue==='').length <= bombCountArray[i]) {
+        console.log("nulled", link,i, [...link].filter(ele => ele.constraintValue||ele.constraintValue==='').length, bombCountArray[i]);
+        return null;
+      } else if ([...link].filter(ele => ele.constraintValue||ele.constraintValue==='').length == bombCountArray[i] && bombCountArray[i] != 0) {
+        console.log("trued");
+        link.forEach((ele, j) => {
+          tempLinksArray.forEach((temp, x) => {
+            temp.forEach(element=>{
+            if (temp.indexOf(element) != -1) {
+              temp[temp.indexOf(element)].isConstraint = false;
+              link[temp.indexOf(element)].constraintValue = true;
+              possibilities[x][temp.indexOf(element)] = true;
+              tempBombCount[x]--;
+            }
+          })})
+        });
+        continue
+      } else if (bombCountArray[i] == 0) {
+        console.log("falsed");
+        link.forEach((ele, j) => {
+          tempLinksArray.forEach((temp, x) => {
+            temp.forEach(element=>{
+            if (temp.indexOf(element) != -1) {
+              temp[temp.indexOf(element)].isConstraint = false;
+              temp[temp.indexOf(element)].constraintValue = true;
+              possibilities[x][temp.indexOf(element)] = false;
+            }})
+          });
+        });
+         continue
+      } else {
+        k_combinations(link, bombCountArray[i]).forEach(combination => {
+            console.log("combinations",combination);
+          let possibility = [];
+          let tempLinksCopy = JSON.parse(JSON.stringify(tempLinksArray))
+          let tempBombCopy = JSON.parse(JSON.stringify(tempBombCount))
+          tempBombCopy[i] = 0;
+          link.forEach((ele, j) => {
+            tempLinksCopy.forEach((temp, x) => {
+                temp.forEach(element=>{
+              if (temp.indexOf(element) != -1) {
+                temp[temp.indexOf(element)].isConstraint = false;
+                temp[temp.indexOf(element)].constraintValue =
+                  combination.indexOf(ele) != -1 ? true : false;
+                //   possibility[x][link.indexOf(tempLinksArray[i][j])] = combination.indexOf(ele) != -1 ? true : false;
+                combination.indexOf(ele) != -1 ? tempBombCopy[x]-- : "";
+              }
+            })})
+          });
+          if(checkForLinkedBombs(tempLinksCopy, bombCountArray)== null) return null
+          else
+         tempLinksArray = ( checkForLinkedBombs(tempLinksCopy
+            
+            , bombCountArray))
+        //   if (possibility != null)
+        //     possibilities = possibilities ? [[...possibilities], [...possibility]] : [...possibility];
+        });
+      }
+    }
+    console.log(tempLinksArray);
+    // console.log(possibilities);
+    return tempLinksArray;
   };
+
+
+  let k_combinations = (set, k) => {
+    var i, j, combs, head, tailcombs;
+    if (k > set.length || k <= 0) {
+      return [];
+    }
+    if (k == set.length) {
+      return [set];
+    }
+    if (k == 1) {
+      combs = [];
+      for (i = 0; i < set.length; i++) {
+        combs.push([set[i]]);
+      }
+      return combs;
+    }
+    combs = [];
+    for (i = 0; i < set.length - k + 1; i++) {
+      head = set.slice(i, i + 1);
+      tailcombs = k_combinations(set.slice(i + 1), k - 1);
+      for (j = 0; j < tailcombs.length; j++) {
+        combs.push(head.concat(tailcombs[j]));
+      }
+    }
+    return combs;
+  };
+  let getAllIndexes = (arr, val) => {
+    var indexes = [],
+      i = -1;
+    while ((i = arr.indexOf(val, i + 1)) != -1) {
+      indexes.push(i);
+    }
+    return indexes;
+  };
+  let difference = (arr1, arr2) => arr1.filter(x => !arr2.includes(x));
 }
