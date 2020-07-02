@@ -48,8 +48,8 @@ function AI() {
           indeces[index] = {};
           indeces[index].i = ele.i;
           indeces[index].j = ele.j;
-          indeces[index].isConstraint = true;
-          indeces[index].constraintValue = "";
+        //   indeces[index].isConstraint = true;
+        //   indeces[index].constraintValue = "";
         });
         unrevealedNeighbourIndices.push(indeces);
       });
