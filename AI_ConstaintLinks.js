@@ -1,26 +1,17 @@
-checkForLinkedBombs = (linksArray, bombCountArray, checkForIndex, unionArray = [], unionArrayIndices = []) => {
-  if (!checkForIndex) checkForIndex = 0;
-  console.log("checkForIndex,", checkForIndex, unionArray, unionArrayIndices);
-  if(!unionArrayIndices){
-      union.forEach((ele,i)=>{
-        unionArrayIndices[i]=''
-      })
-  }
+let checkForLinkedBombs = (linksArray, bombCountArray) => {
   let union = [],
-    linkPositions = [];
-  let trueArray = [],
+    linkPositions = [],
+    trueArray = [],
     falseArray = [],
-    unAssigned = [],
-    combinationIndeces = [];
-  if (unionArray.length == 0)
-    linksArray.forEach((link, i) => {
-      union = arrayUnion(union, link, (a, b) => a.i == b.i && a.j == b.j);
-    });
-  else union = unionArray;
+    unionArrayIndices = [[]];
+  unAssigned = [];
 
-  console.log(linksArray, bombCountArray, checkForIndex);
+  linksArray.forEach((link, i) => {
+    union = arrayUnion(union, link, (a, b) => a.i == b.i && a.j == b.j);
+  });
   union.forEach((ele, i) => {
     let positions = [];
+    unionArrayIndices[0][i] = "";
     linksArray.forEach((link, index) => {
       let contains = -1;
       link.forEach((element, j) => {
@@ -31,59 +22,47 @@ checkForLinkedBombs = (linksArray, bombCountArray, checkForIndex, unionArray = [
     linkPositions.push(positions);
   });
 
-  if (checkForIndex > linksArray.length - 1 || unionArrayIndices === null) {
-    console.log("nulled");
-    return null;
-  } else if (unionArrayIndices && unionArrayIndices.length > 0) {
-    console.log("ifcAse ", checkForIndex);
-    unionArrayIndices.forEach((arrayIndex, i) => {
-      if (linkPositions[i][checkForIndex] != -1) {
-        if (arrayIndex === "") unAssigned.push(union[i]);
-        else arrayIndex ? trueArray.push(union[i]) : falseArray.push(union[i]);
-      }
-      console.log(trueArray, falseArray, unAssigned, checkForIndex);
-    });
-
-    if (
-      trueArray.length > bombCountArray[unionArrayIndices] ||
-      unAssigned.length < bombCountArray[unionArrayIndices] - trueArray.length - falseArray.length
-    ){console.log('nulled')
-      return null;}
-    else if (trueArray.length == bombCountArray[unionArrayIndices]) {
-      console.log("falsed");
-      unAssigned.forEach(ele => {
-        unionArrayIndices[union.findIndex(x => x.i == ele.i && x.j == ele.j)] = false;
+  for (let index = 0; index < linksArray.length; index++) {
+    for (let possibilityIndex = unionArrayIndices.length-1; possibilityIndex >=0; possibilityIndex--) {
+      let possibility = unionArrayIndices[possibilityIndex];
+      trueArray = [];
+      falseArray = [];
+      possibility.forEach((ele, i) => {
+        linksArray[index].forEach(link => {
+          if (objectEquality(link, union[i])) {
+            if (ele === true) trueArray.push(union[i]);
+            else if (ele === false) falseArray.push(union[i]);
+          }
+        });
       });
-      unionArrayIndices = checkForLinkedBombs(linksArray, bombCountArray, checkForIndex + 1, union, unionArrayIndices);
-    } else if (unAssigned.length == bombCountArray[unionArrayIndices] - trueArray.length - falseArray.length) {
-      console.log("trued");
-      unAssigned.forEach(ele => {
-        unionArrayIndices[union.findIndex(x => x.i == ele.i && x.j == ele.j)] = true;
-      });
-      unionArrayIndices = checkForLinkedBombs(linksArray, bombCountArray, checkForIndex + 1, union, unionArrayIndices);
-    } else if (unAssigned.length > bombCountArray[unionArrayIndices] - trueArray.length - falseArray.length) {
-        console.log('ifCombi')
-      unionArrayIndices = goForCombinations(
-        linksArray,
-        bombCountArray,
-        checkForIndex,
-        union,
-        unionArrayIndices,
-        difference(linksArray[checkForIndex], [...trueArray, ...falseArray])
-      );
+      let results = constraintCombinations(linksArray[index], bombCountArray[index], trueArray, falseArray);
+      if (results == null || results.length == 0) {
+        unionArrayIndices.splice(possibilityIndex, 1);
+      } else {
+        results.forEach(result => {
+          indices = [...unionArrayIndices[possibilityIndex]];
+          difference(linksArray[index], result).forEach((ele, i) => {
+            union.forEach((element, j) => {
+              if (objectEquality(ele, element)) indices[j] = false;
+            });
+          });
+          result.forEach(ele => {
+            union.forEach((element, i) => {
+              if (objectEquality(ele, element)) indices[i] = true;
+            });
+          });
+          if (unionArrayIndices.length == 1 && unionArrayIndices[0][0] == "") {
+            unionArrayIndices.splice(0, 1);
+          } else if (results.length == 1) unionArrayIndices[possibilityIndex] = indices;
+          if (results.length != 1) unionArrayIndices.push(indices);
+        });
     }
-    return unionArrayIndices;
-  } else if (unionArrayIndices.length == 0) {
-    console.log("else");
-    return goForCombinations(
-      linksArray,
-      bombCountArray,
-      checkForIndex,
-      union,
-      unionArrayIndices,
-      linksArray[checkForIndex]
-    );
+    if(results.length>1&& index!=0){
+        unionArrayIndices.splice(possibilityIndex,1)
+      }
+    }
   }
+  console.log(unionArrayIndices);
 };
 
 let arrayUnion = (arr1, arr2, equalityFunc) => {
@@ -137,65 +116,46 @@ let getAllIndexes = (arr, val) => {
 };
 
 let difference = (arr1, arr2) => arr1.filter(x => !arr2.includes(x));
+let comparer = otherArray => {
+  return function (current) {
+    return (
+      otherArray.filter(function (other) {
+        return other.i == current.i && other.j == current.j;
+      }).length == 0
+    );
+  };
+};
 
-let goForCombinations = (linksArray, bombCountArray, checkForIndex, union, unionArrayIndices = [], differenceArray) => {
-  if (!checkForIndex) checkForIndex = 0;
-  console.log("checkForIndex,", checkForIndex);
-  combinationIndeces = [];
-  k_combinations(differenceArray, bombCountArray[checkForIndex]).forEach(combination => {
-    console.log(combination, differenceArray);
-    let indices = [...unionArrayIndices];
-    combination.forEach(ele => {
-      console.log(union, ele.i, ele.j);
-      console.log(
-        union,
-        union.findIndex(x => x.i == ele.i && x.j == ele.j),
-        ele.i,
-        ele.j,
-        union
-      );
-      indices[union.findIndex(x => x.i == ele.i && x.j == ele.j)] = true;
-    });
-    linksArray[checkForIndex].forEach(ele => {
-      if (indices[union.findIndex(x => x.i == ele.i && x.j == ele.j)] != true)
-        indices[union.findIndex(x => x.i == ele.i && x.j == ele.j)] = false;
-
-      console.log(
-        union.findIndex(x => x.i == ele.i && x.j == ele.j),
-        ele.i,
-        ele.j,
-        union
-      );
-    });
-    if (checkForIndex < linksArray.length - 1) {
-      console.log("check");
-      console.log(indices);
-      let result = checkForLinkedBombs(linksArray, bombCountArray, checkForIndex + 1, union, indices);
-      console.log("checkForIndex,", checkForIndex);
-      console.log(result);
-      if (result != null) {
-        combinationIndeces.push(result);
-      }
-    } else return null;
+let checkForConstraint = (indecesArray, numberOfTrues) => {
+  let number = 0;
+  indecesArray.forEach(ele => {
+    if (ele == true) number++;
   });
-  if (combinationIndeces.length > 1) {
-    let intersectionIndices = [];
-    for (let i = 0; i < union.length; i++) {
-      let intersection;
-      for (let index = 0; index < combinationIndeces.length; index++) {
-        let combination = combinationIndeces[index];
-        if (!combination || combination == null || combination[i] != intersection) {
-          intersection = "";
-          return;
-        } else if (intersection && combination[i] == intersection) {
-          continue;
-        } else if (!intersection) {
-          intersection = combination[i];
-        }
-      }
-      intersectionIndices.push(intersection);
-    }
-  } else intersectionIndices = combinationIndeces;
-  console.log(intersectionIndices);
-  return intersectionIndices;
+  return number == numberOfTrues;
+};
+
+let constraintCombinations = (set, k, include, dontInclude) => {
+  include = include.filter(x => {
+    set.forEach(ele => {
+      if (ele == x) return false;
+    });
+    return true;
+  });
+  dontInclude = dontInclude.filter(x => {
+    set.forEach(ele => {
+      if (ele == x) return false;
+    });
+    return true;
+  });
+  let iterables = set.filter(comparer([...include])).filter(comparer([...dontInclude]));
+  let combinations = k_combinations(iterables, k - include.length);
+  if (k == include.length) {
+    combinations = [include];
+  } else if (k < include.length || iterables.length == 0) return null;
+  else {
+    combinations.forEach((ele, i) => {
+      combinations[i] = [...ele, ...include];
+    });
+  }
+  return combinations;
 };
