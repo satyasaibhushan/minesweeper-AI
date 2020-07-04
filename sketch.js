@@ -13,6 +13,8 @@ let revealedArray = [],
   confirmedBombs = [],
   uncheckedCellQueue = [];
 
+  let trackMouse =false
+
 function preload() {
   tileImg = loadImage("../src/tile.png");
   emptyTile = loadImage("../src/tile1.png");
@@ -32,12 +34,18 @@ function setup() {
   let activateAI = createButton("Activate Ai");
   let ai = new AI();
   activateAI.mousePressed(_ => {
-    for (let index = uncheckedCellQueue.length-1; index >=0; index--) {
-      ai.checkForRule1(grid,uncheckedCellQueue[index].i,uncheckedCellQueue[index].j);
-    }
-    for (let index = uncheckedCellQueue.length-1; index >=0; index--) {
-      ai.checkForRule2(grid,uncheckedCellQueue[index].i,uncheckedCellQueue[index].j);
-    }
+    new Promise((res,rej)=>res())
+    .then(_=>{
+      for (let index = uncheckedCellQueue.length-1; index >=0; index--) {
+        ai.checkForRule1(grid,uncheckedCellQueue[index].i,uncheckedCellQueue[index].j);
+      }
+      for (let index = uncheckedCellQueue.length-1; index >=0; index--) {
+        ai.checkForRule2(grid,uncheckedCellQueue[index].i,uncheckedCellQueue[index].j);
+      }
+    })
+    .then(_=>{
+   ai.checkForRule3(grid,uncheckedCellQueue)
+    })
   });
   let rule3  = createButton("Activate Ai 3rd Degree");
   rule3.mousePressed(_=>{
@@ -47,6 +55,11 @@ function setup() {
   activateAI.style("background-color", col);
   activateAI.style("outline-width", 0);
   activateAI.elt.className = "activateButton";
+  
+  checkbox = createCheckbox('label', false);
+  checkbox.changed(showIndex);
+  mouseIndexes = createSpan('Mouse Indexes')
+
   frameRate(5);
   cols = floor(width / w);
   rows = floor(height / w);
@@ -130,5 +143,23 @@ function draw() {
     }
   }
   if (mouseIsPressed) {
+  }
+  if(trackMouse){
+    for (let i = 0; i < cols; i++) {
+      for (let j = 0; j < rows; j++) {
+        if (grid[i][j].contains(mouseX, mouseY)) {
+          mouseIndexes.elt.innerHTML = '('+i+ ' , ' +j+')'
+        }
+      }
+    }
+  }
+}
+
+function showIndex(){
+  if (this.checked()) {
+    trackMouse = true
+  } else {
+    trackMouse = false
+    mouseIndexes.elt.innerHTML = ''
   }
 }

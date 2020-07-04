@@ -5,6 +5,7 @@ let checkForLinkedBombs = (linksArray, bombCountArray) => {
     falseArray = [],
     unionArrayIndices = [[]];
   unAssigned = [];
+  finalDeductions = [];
 
   linksArray.forEach((link, i) => {
     union = arrayUnion(union, link, (a, b) => a.i == b.i && a.j == b.j);
@@ -23,7 +24,7 @@ let checkForLinkedBombs = (linksArray, bombCountArray) => {
   });
 
   for (let index = 0; index < linksArray.length; index++) {
-    for (let possibilityIndex = unionArrayIndices.length-1; possibilityIndex >=0; possibilityIndex--) {
+    for (let possibilityIndex = unionArrayIndices.length - 1; possibilityIndex >= 0; possibilityIndex--) {
       let possibility = unionArrayIndices[possibilityIndex];
       trueArray = [];
       falseArray = [];
@@ -51,18 +52,62 @@ let checkForLinkedBombs = (linksArray, bombCountArray) => {
               if (objectEquality(ele, element)) indices[i] = true;
             });
           });
-          if (unionArrayIndices.length == 1 && unionArrayIndices[0][0] == "") {
+          if (unionArrayIndices.length == 1 && unionArrayIndices[0][0] == ""&& index==0) {
             unionArrayIndices.splice(0, 1);
-          } else if (results.length == 1) unionArrayIndices[possibilityIndex] = indices;
-          if (results.length != 1) unionArrayIndices.push(indices);
+          }
+          unionArrayIndices.push(indices);
         });
-    }
-    if(results.length>1&& index!=0){
-        unionArrayIndices.splice(possibilityIndex,1)
+        if (index != 0) {
+          unionArrayIndices.splice(possibilityIndex, 1);
+        }
       }
     }
   }
-  console.log(unionArrayIndices);
+  if (unionArrayIndices.length > 1) {
+    finalDeductions = [];
+    for (let i = 0; i < union.length; i++) {
+      let intersection;
+      for (let index = 0; index < unionArrayIndices.length; index++) {
+        combination = unionArrayIndices[index];
+        if (
+          (combination[i] == null || combination[i] != intersection) &&
+          (intersection === false || intersection === true)
+        ) {
+          intersection = "";
+          finalDeductions[i] = intersection;
+          break;
+        } else if (intersection && combination[i] == intersection) {
+          continue;
+        } else if (!intersection) {
+          intersection = combination[i];
+          finalDeductions[i] = intersection;
+        }
+      }
+    }
+  }
+  let unionB = [...union];
+  let emptyLinks = 0;
+  for (let index = finalDeductions.length - 1; index >= 0; index--) {
+    if (finalDeductions[index] === "") {
+      finalDeductions.splice(index, 1);
+      union.splice(index, 1);
+    }
+  }
+  linksArray.forEach((link, i) => {
+    if (link.length == 0 && union.length > 0) {
+      emptyLinks++;
+      link.forEach((ele, index) => {
+        union.forEach((element, j) => {
+          if (ele == element) {
+            finalDeductions.splice(i, 1);
+            union.splice(i, 1);
+          }
+        });
+      });
+    }
+  });
+  if (finalDeductions.length != 0)
+    return [finalDeductions, union, unionArrayIndices, unionB, bombCountArray, linksArray];
 };
 
 let arrayUnion = (arr1, arr2, equalityFunc) => {

@@ -48,12 +48,23 @@ function AI() {
           indeces[index] = {};
           indeces[index].i = ele.i;
           indeces[index].j = ele.j;
-        //   indeces[index].isConstraint = true;
-        //   indeces[index].constraintValue = "";
         });
         unrevealedNeighbourIndices.push(indeces);
       });
-      console.log(checkForLinkedBombs(unrevealedNeighbourIndices, remainingSurroundingBombCount));
+      let result = checkForLinkedBombs(unrevealedNeighbourIndices, remainingSurroundingBombCount);
+      if (result != undefined) {
+        let [values, elements] = result;
+        elements.forEach((ele, i) => {
+          if (values[i] === true) {
+            setFlagAt(ele.i, ele.j, false);
+            confirmedBombs.push(grid[ele.i][ele.j]);
+          } else if (values[i] === false) {
+            grid[ele.i][ele.j].isRevealed = true;
+            uncheckedCellQueue.push(grid[ele.i][ele.j]);
+            grid[ele.i][ele.j].isQueued = true;
+          }
+        });
+      }
     });
   };
   let calculateUnrevealedNeighbours = (grid, i, j) => {
@@ -87,10 +98,8 @@ function AI() {
           }
         }
       }
-      triplet.length >= 3 ? links.push(triplet) : "";
+      triplet.length >= 2 ? links.push(triplet) : "";
     });
     return links;
   };
-
-  
 }
