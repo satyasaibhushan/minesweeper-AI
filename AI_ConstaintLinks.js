@@ -161,6 +161,7 @@ let getAllIndexes = (arr, val) => {
 };
 
 let difference = (arr1, arr2) => arr1.filter(x => !arr2.includes(x));
+
 let comparer = otherArray => {
   return function (current) {
     return (

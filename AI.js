@@ -3,12 +3,9 @@ function AI() {
     if ((i || i == 0) && (j || j == 0)) {
       let unRevealedNeighbours = calculateUnrevealedNeighbours(grid, i, j);
       if (grid[i][j].neighbourCount == unRevealedNeighbours.length) {
-        // uncheckedCellQueue.indexOf(grid[i][j]) != -1
-        // ? uncheckedCellQueue.splice(uncheckedCellQueue.indexOf(grid[i][j]), 1)
-        // : "";
         unRevealedNeighbours.forEach(ele => {
           setFlagAt(ele.i, ele.j, false);
-          confirmedBombs.push(grid[i][j]);
+          AIsolvedCount[0]++;
         });
       }
     }
@@ -23,9 +20,8 @@ function AI() {
         for (let x = -1; x < 2; x++) {
           for (let y = -1; y < 2; y++) {
             if (grid[i + x] && grid[i + x][y + j] && !grid[i + x][y + j].isRevealed && !grid[i + x][y + j].isFlagged) {
-              grid[i + x][y + j].isRevealed = true;
-              uncheckedCellQueue.push(grid[i + x][y + j]);
-              grid[i + x][y + j].isQueued = true;
+              grid[i + x][y + j].reveal()
+              AIsolvedCount[0]++;
             }
           }
         }
@@ -55,17 +51,44 @@ function AI() {
       if (result != undefined) {
         let [values, elements] = result;
         elements.forEach((ele, i) => {
+          AIsolvedCount[0]++;
           if (values[i] === true) {
             setFlagAt(ele.i, ele.j, false);
-            confirmedBombs.push(grid[ele.i][ele.j]);
           } else if (values[i] === false) {
-            grid[ele.i][ele.j].isRevealed = true;
-            uncheckedCellQueue.push(grid[ele.i][ele.j]);
-            grid[ele.i][ele.j].isQueued = true;
+            grid[ele.i][ele.j].reveal()
           }
         });
       }
     });
+  };
+
+  this.selectRandomElements = (grid, list, index = 0) => {
+    if (index > w / 2) {
+      console.log("Many Attempts of random selection");
+      return;
+    }
+    if (list.length > w && confirmedBombs.length < Minefactor * w*w/2) {
+      let element = list[floor(random(list.length - 1))];
+      let revealedNeighbours = 0;
+
+      for (let x = -1; x < 2; x++) {
+        for (let y = -1; y < 2; y++) {
+          if (
+            grid[element.i + x] &&
+            grid[element.i + x][y + element.j] &&
+            grid[element.i + x][y + element.j].isRevealed
+          ) {
+            revealedNeighbours++;
+          }
+        }
+      }
+      if (revealedNeighbours == 0) {
+        element.reveal()
+        AIsolvedCount[0]++;
+      } else {
+        this.selectRandomElements(grid, list, index);
+      }
+    }
   };
   let calculateUnrevealedNeighbours = (grid, i, j) => {
     let neighbours = [];
@@ -78,10 +101,6 @@ function AI() {
     }
     return neighbours;
   };
-  let isSubsetOf = (set, subset) => {
-    return Array.from(new Set([...set, ...subset])).length === set.length;
-  };
-
   let getLinks = array => {
     let links = [];
     array.forEach(ele => {

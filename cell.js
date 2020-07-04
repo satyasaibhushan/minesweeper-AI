@@ -60,6 +60,10 @@ function Cell(i, j, w) {
     revealedArray.push(grid[this.i][this.j])
     setTimeout(() => {
       if (revealedArray.length + mineCount == rows * cols) alert("Congratulations You Won");
+      else if(this.isMine){
+        this.isMineActive = true;
+            gameOver();
+      }
     }, 10);
     if (this.neighbourCount == 0) {
       // flood fill time

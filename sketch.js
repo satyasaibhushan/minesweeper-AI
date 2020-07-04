@@ -12,8 +12,9 @@ let flagDiv;
 let revealedArray = [],
   confirmedBombs = [],
   uncheckedCellQueue = [];
+let AIsolvedCount = [0];
 
-  let trackMouse =false
+let trackMouse = false;
 
 function preload() {
   tileImg = loadImage("../src/tile.png");
@@ -34,31 +35,34 @@ function setup() {
   let activateAI = createButton("Activate Ai");
   let ai = new AI();
   activateAI.mousePressed(_ => {
-    new Promise((res,rej)=>res())
-    .then(_=>{
-      for (let index = uncheckedCellQueue.length-1; index >=0; index--) {
-        ai.checkForRule1(grid,uncheckedCellQueue[index].i,uncheckedCellQueue[index].j);
-      }
-      for (let index = uncheckedCellQueue.length-1; index >=0; index--) {
-        ai.checkForRule2(grid,uncheckedCellQueue[index].i,uncheckedCellQueue[index].j);
-      }
-    })
-    .then(_=>{
-   ai.checkForRule3(grid,uncheckedCellQueue)
-    })
+    if(!isGameOver)new Promise((res, rej) => res())
+      .then(_ => {
+        for (let index = uncheckedCellQueue.length - 1; index >= 0; index--) {
+          ai.checkForRule1(grid, uncheckedCellQueue[index].i, uncheckedCellQueue[index].j);
+        }
+        for (let index = uncheckedCellQueue.length - 1; index >= 0; index--) {
+          ai.checkForRule2(grid, uncheckedCellQueue[index].i, uncheckedCellQueue[index].j);
+        }
+      })
+      .then(_ => {
+        ai.checkForRule3(grid, uncheckedCellQueue);
+      }).then(_=>{
+        if(AIsolvedCount[1]==AIsolvedCount[0]) {
+          let unrevealedElements=[].concat(...grid)
+          unrevealedElements = unrevealedElements.filter(comparer([...revealedArray])).filter(comparer([...confirmedBombs]))
+          ai.selectRandomElements(grid,unrevealedElements)
+        }
+        AIsolvedCount[1]=AIsolvedCount[0]
+      })
   });
-  let rule3  = createButton("Activate Ai 3rd Degree");
-  rule3.mousePressed(_=>{
-    ai.checkForRule3(grid,uncheckedCellQueue)
-  })
   col = color(127, 0.5);
   activateAI.style("background-color", col);
   activateAI.style("outline-width", 0);
   activateAI.elt.className = "activateButton";
-  
-  checkbox = createCheckbox('label', false);
+
+  checkbox = createCheckbox("label", false);
   checkbox.changed(showIndex);
-  mouseIndexes = createSpan('Mouse Indexes')
+  mouseIndexes = createSpan("Mouse Indexes");
 
   frameRate(5);
   cols = floor(width / w);
@@ -113,25 +117,21 @@ function mousePressed(e) {
           if (!grid[i][j].isRevealed) {
             grid[i][j].reveal();
           }
-
-          if (grid[i][j].isMine) {
-            grid[i][j].isMineActive = true;
-            gameOver();
-          }
         }
       }
     }
   }
 }
-function setFlagAt(i, j,unflag = true) {
-  if(unflag){
-    grid[i][j].isFlagged = grid[i][j].isFlagged  ? false : true;
+function setFlagAt(i, j, unflag = true) {
+  if (unflag) {
+    grid[i][j].isFlagged = grid[i][j].isFlagged ? false : true;
     grid[i][j].isFlagged ? remainingFlags-- : remainingFlags++;
-  }
-  else{
-    grid[i][j].isFlagged ? '': remainingFlags--
-    grid[i][j].isFlagged = true;
-
+  } else {
+    if (!grid[i][j].isFlagged) {
+      remainingFlags--;
+      confirmedBombs.push(grid[i][j]);
+    }
+    grid[i][j].isFlagged ? "" : (grid[i][j].isFlagged = true);
   }
   flagDiv.elt.innerHTML = "No of flags left : " + remainingFlags;
 }
@@ -144,22 +144,22 @@ function draw() {
   }
   if (mouseIsPressed) {
   }
-  if(trackMouse){
+  if (trackMouse) {
     for (let i = 0; i < cols; i++) {
       for (let j = 0; j < rows; j++) {
         if (grid[i][j].contains(mouseX, mouseY)) {
-          mouseIndexes.elt.innerHTML = '('+i+ ' , ' +j+')'
+          mouseIndexes.elt.innerHTML = "(" + i + " , " + j + ")";
         }
       }
     }
   }
 }
 
-function showIndex(){
+function showIndex() {
   if (this.checked()) {
-    trackMouse = true
+    trackMouse = true;
   } else {
-    trackMouse = false
-    mouseIndexes.elt.innerHTML = ''
+    trackMouse = false;
+    mouseIndexes.elt.innerHTML = "";
   }
 }
