@@ -106,7 +106,7 @@ let checkForLinkedBombs = (linksArray, bombCountArray) => {
       });
     }
   });
-  if (finalDeductions.length != 0)
+  // if (finalDeductions.length != 0)
     return [finalDeductions, union, unionArrayIndices, unionB, bombCountArray, linksArray];
 };
 

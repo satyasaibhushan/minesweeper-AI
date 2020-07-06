@@ -5,6 +5,7 @@ let grid,
   remainingFlags = 0;
 let w = 30;
 let Minefactor = 0.17;
+let noOfBombs = 0;
 let tileImg, emptyTile, bombImg, flagImg;
 let isGameOver = false;
 let font;
@@ -35,25 +36,44 @@ function setup() {
   let activateAI = createButton("Activate Ai");
   let ai = new AI();
   activateAI.mousePressed(_ => {
-    if(!isGameOver)new Promise((res, rej) => res())
-      .then(_ => {
-        for (let index = uncheckedCellQueue.length - 1; index >= 0; index--) {
-          ai.checkForRule1(grid, uncheckedCellQueue[index].i, uncheckedCellQueue[index].j);
-        }
-        for (let index = uncheckedCellQueue.length - 1; index >= 0; index--) {
-          ai.checkForRule2(grid, uncheckedCellQueue[index].i, uncheckedCellQueue[index].j);
-        }
-      })
-      .then(_ => {
-        ai.checkForRule3(grid, uncheckedCellQueue);
-      }).then(_=>{
-        if(AIsolvedCount[1]==AIsolvedCount[0]) {
-          let unrevealedElements=[].concat(...grid)
-          unrevealedElements = unrevealedElements.filter(comparer([...revealedArray])).filter(comparer([...confirmedBombs]))
-          ai.selectRandomElements(grid,unrevealedElements)
-        }
-        AIsolvedCount[1]=AIsolvedCount[0]
-      })
+    if (!isGameOver)
+      new Promise((res, rej) => res())
+        .then(_ => {
+          console.log("rule1,2");
+          for (let index = uncheckedCellQueue.length - 1; index >= 0; index--) {
+            ai.checkForRule1(grid, uncheckedCellQueue[index].i, uncheckedCellQueue[index].j);
+          }
+          for (let index = uncheckedCellQueue.length - 1; index >= 0; index--) {
+            ai.checkForRule2(grid, uncheckedCellQueue[index].i, uncheckedCellQueue[index].j);
+          }
+        })
+        .then(_ => {
+          console.log("rule3");
+          ai.checkForRule3(grid, uncheckedCellQueue);
+        })
+        .then(_ => {
+          console.log(AIsolvedCount[1],AIsolvedCount[0])
+          if (AIsolvedCount[1] == AIsolvedCount[0]) {
+            let unrevealedElements = [].concat(...grid);
+            unrevealedElements = unrevealedElements
+              .filter(comparer([...revealedArray]))
+              .filter(comparer([...confirmedBombs]));
+            if (unrevealedElements.length > sqrt(rows*cols*2) && confirmedBombs.length < noOfBombs - sqrt(noOfBombs*2)) {
+              console.log("random");
+              ai.heuristic1(grid, unrevealedElements);
+            } else {
+              console.log("final");
+              ai.checkForRule4(grid, unrevealedElements, uncheckedCellQueue);
+            }
+          }
+          AIsolvedCount[1] = AIsolvedCount[0];
+        });
+    // .then(_=>{
+    //   if(AIsolvedCount[1]==AIsolvedCount[0]){
+    //     console.log('hiw')
+    //   }
+
+    // })
   });
   col = color(127, 0.5);
   activateAI.style("background-color", col);
@@ -67,6 +87,7 @@ function setup() {
   frameRate(5);
   cols = floor(width / w);
   rows = floor(height / w);
+  noOfBombs = Minefactor * rows * cols;
   grid = new Array(cols);
   for (let i = 0; i < grid.length; i++) {
     grid[i] = new Array(rows);
@@ -78,7 +99,7 @@ function setup() {
     }
   }
 
-  for (mineCount = 0; mineCount < Math.floor(rows * cols * Minefactor); ) {
+  for (mineCount = 0; mineCount < Math.floor(noOfBombs); ) {
     let i = floor(random(cols));
     let j = floor(random(rows));
 
@@ -94,7 +115,7 @@ function setup() {
       }
     }
   }
-  remainingFlags = floor(rows * cols * Minefactor);
+  remainingFlags = floor(noOfBombs);
   flagDiv.elt.innerHTML = "No of flags left : " + remainingFlags;
 }
 
@@ -111,7 +132,7 @@ function mousePressed(e) {
   for (let i = 0; i < cols; i++) {
     for (let j = 0; j < rows; j++) {
       if (grid[i][j].contains(mouseX, mouseY) && !isGameOver) {
-        if (e.metaKey && remainingFlags > 0 && !grid[i][j].isRevealed) {
+        if (e.metaKey && remainingFlags >= 0 && !grid[i][j].isRevealed) {
           setFlagAt(i, j);
         } else if (!grid[i][j].isFlagged && !(remainingFlags == 0 && e.metaKey)) {
           if (!grid[i][j].isRevealed) {
@@ -124,8 +145,16 @@ function mousePressed(e) {
 }
 function setFlagAt(i, j, unflag = true) {
   if (unflag) {
-    grid[i][j].isFlagged = grid[i][j].isFlagged ? false : true;
-    grid[i][j].isFlagged ? remainingFlags-- : remainingFlags++;
+    if(grid[i][j].isFlagged){
+      grid[i][j].isFlagged=false
+      remainingFlags--
+      confirmedBombs= confirmedBombs.filter(comparer([grid[i][j]]))
+    }
+    else{
+      grid[i][j].isFlagged=true
+      remainingFlags++
+      confirmedBombs.push(grid[i][j]);
+    }
   } else {
     if (!grid[i][j].isFlagged) {
       remainingFlags--;

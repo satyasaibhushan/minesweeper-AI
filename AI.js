@@ -20,7 +20,7 @@ function AI() {
         for (let x = -1; x < 2; x++) {
           for (let y = -1; y < 2; y++) {
             if (grid[i + x] && grid[i + x][y + j] && !grid[i + x][y + j].isRevealed && !grid[i + x][y + j].isFlagged) {
-              grid[i + x][y + j].reveal()
+              grid[i + x][y + j].reveal();
               AIsolvedCount[0]++;
             }
           }
@@ -32,64 +32,97 @@ function AI() {
     let tripletLinks = getLinks(queue);
     tripletLinks.forEach(triplet => {
       let unrevealedNeighbours = [],
-        unrevealedNeighbourIndices = [];
-      remainingSurroundingBombCount = [];
+        remainingSurroundingBombCount = [];
       triplet.forEach(ele => {
         unrevealedNeighbours.push(calculateUnrevealedNeighbours(grid, ele.i, ele.j).filter(ele => !ele.isFlagged));
         remainingSurroundingBombCount.push(ele.neighbourCount - ele.surroundingFlags());
       });
-      unrevealedNeighbours.forEach(array => {
-        let indeces = [];
-        array.forEach((ele, index) => {
-          indeces[index] = {};
-          indeces[index].i = ele.i;
-          indeces[index].j = ele.j;
-        });
-        unrevealedNeighbourIndices.push(indeces);
-      });
-      let result = checkForLinkedBombs(unrevealedNeighbourIndices, remainingSurroundingBombCount);
+      let result = checkForLinkedBombs(unrevealedNeighbours, remainingSurroundingBombCount);
+      // console.log(unrevealedNeighbourIndices,remainingSurroundingBombCount,tripletLinks,result)
       if (result != undefined) {
         let [values, elements] = result;
         elements.forEach((ele, i) => {
-          AIsolvedCount[0]++;
           if (values[i] === true) {
+            AIsolvedCount[0]++;
             setFlagAt(ele.i, ele.j, false);
           } else if (values[i] === false) {
-            grid[ele.i][ele.j].reveal()
+            AIsolvedCount[0]++;
+            grid[ele.i][ele.j].reveal();
           }
         });
       }
     });
   };
 
-  this.selectRandomElements = (grid, list, index = 0) => {
+  this.heuristic1 = (grid, list, index = 0) => {
     if (index > w / 2) {
       console.log("Many Attempts of random selection");
       return;
     }
-    if (list.length > w && confirmedBombs.length < Minefactor * w*w/2) {
-      let element = list[floor(random(list.length - 1))];
-      let revealedNeighbours = 0;
+    let element = list[floor(random(list.length - 1))];
+    let revealedNeighbours = 0;
 
-      for (let x = -1; x < 2; x++) {
-        for (let y = -1; y < 2; y++) {
-          if (
-            grid[element.i + x] &&
-            grid[element.i + x][y + element.j] &&
-            grid[element.i + x][y + element.j].isRevealed
-          ) {
-            revealedNeighbours++;
-          }
+    for (let x = -1; x < 2; x++) {
+      for (let y = -1; y < 2; y++) {
+        if (
+          grid[element.i + x] &&
+          grid[element.i + x][y + element.j] &&
+          grid[element.i + x][y + element.j].isRevealed
+        ) {
+          revealedNeighbours++;
         }
       }
-      if (revealedNeighbours == 0) {
-        element.reveal()
-        AIsolvedCount[0]++;
-      } else {
-        this.selectRandomElements(grid, list, index);
+    }
+    if (revealedNeighbours == 0) {
+      element.reveal();
+      AIsolvedCount[0]++;
+    } else {
+      this.heuristic1(grid, list, index);
+    }
+  };
+
+  this.checkForRule4 = (grid, list, queue) => {
+    let links = [],
+      bombCount = [],
+      tempBombCount = [];
+    let unSolvedBombs = noOfBombs - confirmedBombs.length;
+    queue.forEach(ele => {
+      let link = calculateUnrevealedNeighbours(grid, ele.i, ele.j).filter(ele => !ele.isFlagged);
+      links.push(link);
+      tempBombCount.push(ele.neighbourCount - ele.surroundingFlags());
+    });
+    const uniqueArray = links.filter((thing, index) => {
+      const _thing = JSON.stringify(thing);
+      return (
+        index ===
+        links.findIndex((obj, i) => {
+          if (JSON.stringify(obj) === _thing) {
+            if (index == i) bombCount.push(tempBombCount[i]);
+            return true;
+          }
+        })
+      );
+    });
+    if (noOfBombs - confirmedBombs.length == 0) {
+      isGameOver = true;
+    } else {
+      let result = checkForFinalBombs(list, unSolvedBombs, uniqueArray, bombCount);
+      if (!result) return;
+      else {
+        result.then(res => {
+          [elements, probability] = res;
+          elements.forEach((ele, i) => {
+            if (probability[i] === 1) {
+              setFlagAt(ele.i, ele.j, false);
+            } else if (probability[i] === 0) {
+              grid[ele.i][ele.j].reveal();
+            }
+          });
+        });
       }
     }
   };
+
   let calculateUnrevealedNeighbours = (grid, i, j) => {
     let neighbours = [];
     for (let x = -1; x < 2; x++) {
@@ -101,12 +134,13 @@ function AI() {
     }
     return neighbours;
   };
+
   let getLinks = array => {
     let links = [];
     array.forEach(ele => {
       let triplet = [];
-      for (let x = -1; x < 2; x++) {
-        for (let y = -1; y < 2; y++) {
+      for (let x = -2; x < 3; x++) {
+        for (let y = -2; y < 3; y++) {
           if (
             grid[ele.i + x] &&
             grid[ele.i + x][y + ele.j] &&
