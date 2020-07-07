@@ -110,11 +110,11 @@ function AI() {
       if (!result) return;
       else {
         result.then(res => {
-          [elements, probability] = res;
+          [deductions, elements] = res;
           elements.forEach((ele, i) => {
-            if (probability[i] === 1) {
+            if (deductions[i] === true) {
               setFlagAt(ele.i, ele.j, false);
-            } else if (probability[i] === 0) {
+            } else if (deductions[i] === false) {
               grid[ele.i][ele.j].reveal();
             }
           });

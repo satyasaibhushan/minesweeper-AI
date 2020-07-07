@@ -4,7 +4,7 @@ let grid,
   mineCount,
   remainingFlags = 0;
 let w = 30;
-let Minefactor = 0.17;
+let Minefactor = 0.18;
 let noOfBombs = 0;
 let tileImg, emptyTile, bombImg, flagImg;
 let isGameOver = false;
@@ -52,13 +52,16 @@ function setup() {
           ai.checkForRule3(grid, uncheckedCellQueue);
         })
         .then(_ => {
-          console.log(AIsolvedCount[1],AIsolvedCount[0])
+          console.log(AIsolvedCount[1], AIsolvedCount[0]);
           if (AIsolvedCount[1] == AIsolvedCount[0]) {
             let unrevealedElements = [].concat(...grid);
             unrevealedElements = unrevealedElements
               .filter(comparer([...revealedArray]))
               .filter(comparer([...confirmedBombs]));
-            if (unrevealedElements.length > sqrt(rows*cols*2) && confirmedBombs.length < noOfBombs - sqrt(noOfBombs*2)) {
+            if (
+              unrevealedElements.length > sqrt(rows * cols) &&
+              confirmedBombs.length < noOfBombs - sqrt(noOfBombs * 2)
+            ) {
               console.log("random");
               ai.heuristic1(grid, unrevealedElements);
             } else {
@@ -145,14 +148,13 @@ function mousePressed(e) {
 }
 function setFlagAt(i, j, unflag = true) {
   if (unflag) {
-    if(grid[i][j].isFlagged){
-      grid[i][j].isFlagged=false
-      remainingFlags--
-      confirmedBombs= confirmedBombs.filter(comparer([grid[i][j]]))
-    }
-    else{
-      grid[i][j].isFlagged=true
-      remainingFlags++
+    if (grid[i][j].isFlagged) {
+      grid[i][j].isFlagged = false;
+      remainingFlags++;
+      confirmedBombs = confirmedBombs.filter(comparer([grid[i][j]]));
+    } else {
+      grid[i][j].isFlagged = true;
+      remainingFlags--;
       confirmedBombs.push(grid[i][j]);
     }
   } else {

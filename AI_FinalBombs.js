@@ -47,20 +47,59 @@ let checkForFinalBombs = (totalList, totalCount, linksArray, bombCountArray) => 
     }
   }
 
-  return new Promise((res, rej) => res()).then(_ => {
-    results.forEach(result => {
-      result.forEach((ele, i) => {
-        if (ele === true) scores[i]++;
+  return new Promise((res, rej) => res())
+    .then(_ => {
+      results.forEach(result => {
+        result.forEach((ele, i) => {
+          if (ele === true) scores[i]++;
+        });
       });
-    });
-  }).then(_=>{
-    scores.forEach((ele,i)=>{
-      scores[i] = (ele/results.length)
     })
-  })
-  .then(_=>{
-    console.log(lists, results, scores);
-    return [lists, scores]
-  })
+    .then(_ => {
+      scores.forEach((ele, i) => {
+        scores[i] = ele / results.length;
+      });
+    })
+    .then(_ => {
+      let deductions = [],
+        finalList = [];
+      scores.forEach((ele, index) => {
+        if (ele == 0) {
+          deductions.push(false);
+          finalList.push(lists[index]);
+        } else if (ele == 1) {
+          deductions.push(true);
+          finalList.push(lists[index]);
+        }
+      });
+      return [deductions, finalList];
+    })
+    .then(([deductions, finalList]) => {
+      if (finalList.length > 0) {
+       //deductions 
+        return [deductions, finalList];
+      } else {
+        //guessings 
+        deductions = [];
+        finalList = [];
+         let uncertainities = [],record=0.5,recordEleIndexes=[];
 
+        scores.forEach((ele, index) => (ele < 0.5 ? uncertainities.push(ele) : uncertainities.push(1 - ele)));
+        uncertainities.forEach((ele,index)=>{
+            if(ele<record){
+              record = ele
+               recordEleIndexes=[index]
+            }
+            else if(ele==record){
+              recordEleIndexes.push(index)
+            }
+        })
+        recordEleIndexes.forEach(ele=>{
+            finalList.push(lists[ele])
+            scores[ele]<0.5 ? deductions.push(false):deductions.push(true)
+        })
+          let randomIndex = floor(random(0,deductions.length-0.000001))
+          return [[deductions[randomIndex]],[finalList[randomIndex]]]
+      }
+    })
 };
