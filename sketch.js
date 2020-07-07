@@ -4,7 +4,7 @@ let grid,
   mineCount,
   remainingFlags = 0;
 let w = 30;
-let Minefactor = 0.18;
+let Minefactor = 0.15;
 let noOfBombs = 0;
 let tileImg, emptyTile, bombImg, flagImg;
 let isGameOver = false;
@@ -14,6 +14,7 @@ let revealedArray = [],
   confirmedBombs = [],
   uncheckedCellQueue = [];
 let AIsolvedCount = [0];
+let isAlerted = false;
 
 let trackMouse = false;
 
@@ -34,58 +35,15 @@ function setup() {
 
   createCanvas(601, 601);
   let activateAI = createButton("Activate Ai");
-  let ai = new AI();
   activateAI.mousePressed(_ => {
-    if (!isGameOver)
-      new Promise((res, rej) => res())
-        .then(_ => {
-          console.log("rule1,2");
-          for (let index = uncheckedCellQueue.length - 1; index >= 0; index--) {
-            ai.checkForRule1(grid, uncheckedCellQueue[index].i, uncheckedCellQueue[index].j);
-          }
-          for (let index = uncheckedCellQueue.length - 1; index >= 0; index--) {
-            ai.checkForRule2(grid, uncheckedCellQueue[index].i, uncheckedCellQueue[index].j);
-          }
-        })
-        .then(_ => {
-          console.log("rule3");
-          ai.checkForRule3(grid, uncheckedCellQueue);
-        })
-        .then(_ => {
-          console.log(AIsolvedCount[1], AIsolvedCount[0]);
-          if (AIsolvedCount[1] == AIsolvedCount[0]) {
-            let unrevealedElements = [].concat(...grid);
-            unrevealedElements = unrevealedElements
-              .filter(comparer([...revealedArray]))
-              .filter(comparer([...confirmedBombs]));
-            if (
-              unrevealedElements.length > sqrt(rows * cols) &&
-              confirmedBombs.length < noOfBombs - sqrt(noOfBombs * 2)
-            ) {
-              console.log("random");
-              ai.heuristic1(grid, unrevealedElements);
-            } else {
-              console.log("final");
-              ai.checkForRule4(grid, unrevealedElements, uncheckedCellQueue);
-            }
-          }
-          AIsolvedCount[1] = AIsolvedCount[0];
-        });
-    // .then(_=>{
-    //   if(AIsolvedCount[1]==AIsolvedCount[0]){
-    //     console.log('hiw')
-    //   }
-
-    // })
+    let ai = new AI();
+    ai.beginSolving(ai);
+    activateAI.hide()
   });
   col = color(127, 0.5);
   activateAI.style("background-color", col);
   activateAI.style("outline-width", 0);
   activateAI.elt.className = "activateButton";
-
-  checkbox = createCheckbox("label", false);
-  checkbox.changed(showIndex);
-  mouseIndexes = createSpan("Mouse Indexes");
 
   frameRate(5);
   cols = floor(width / w);
@@ -131,6 +89,18 @@ function gameOver() {
     }
   }
 }
+function declareIfWin() {
+  if (revealedArray.length + confirmedBombs.length == rows * cols && !isGameOver) {
+    isGameOver = true;
+    setTimeout(() => {
+      if (isAlerted === false) {
+        alert("Congratulations You Won");
+        isAlerted = true;
+      }
+    }, 500);
+  }
+}
+
 function mousePressed(e) {
   for (let i = 0; i < cols; i++) {
     for (let j = 0; j < rows; j++) {
@@ -165,6 +135,7 @@ function setFlagAt(i, j, unflag = true) {
     grid[i][j].isFlagged ? "" : (grid[i][j].isFlagged = true);
   }
   flagDiv.elt.innerHTML = "No of flags left : " + remainingFlags;
+  declareIfWin();
 }
 
 function draw() {
@@ -172,25 +143,5 @@ function draw() {
     for (let j = 0; j < rows; j++) {
       grid[i][j].show();
     }
-  }
-  if (mouseIsPressed) {
-  }
-  if (trackMouse) {
-    for (let i = 0; i < cols; i++) {
-      for (let j = 0; j < rows; j++) {
-        if (grid[i][j].contains(mouseX, mouseY)) {
-          mouseIndexes.elt.innerHTML = "(" + i + " , " + j + ")";
-        }
-      }
-    }
-  }
-}
-
-function showIndex() {
-  if (this.checked()) {
-    trackMouse = true;
-  } else {
-    trackMouse = false;
-    mouseIndexes.elt.innerHTML = "";
   }
 }

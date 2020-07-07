@@ -76,9 +76,11 @@ let checkForFinalBombs = (totalList, totalCount, linksArray, bombCountArray) => 
     })
     .then(([deductions, finalList]) => {
       if (finalList.length > 0) {
+        console.log('deductions')
        //deductions 
         return [deductions, finalList];
       } else {
+        console.log('guessings')
         //guessings 
         deductions = [];
         finalList = [];

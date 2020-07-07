@@ -1,4 +1,54 @@
 function AI() {
+    //rule 1 => if no.of un-revealed spaces is equal to the no.of bombs count then set all surroundings to flags
+  //rule 2 => if no.of neigbouring flags  == bomb-count, then reveal all other spaces
+  //rule 3 => solve the constrained links for bombs using combinations
+  //rule 4 => deduce by no.of flags remaining .i.e,you arrange the flags in the spaces and calculate the probability
+  //heuristic 1=> selecting a random spot
+  
+  this.beginSolving =()=>{
+    if (!isGameOver)
+      new Promise((res, rej) => res())
+        .then(_ => {
+          if(AIsolvedCount[0]!=0 || revealedArray.length>0){
+          console.log("rule1,2,3");
+          for (let index = uncheckedCellQueue.length - 1; index >= 0; index--) {
+            this.checkForRule1(grid, uncheckedCellQueue[index].i, uncheckedCellQueue[index].j);
+          }
+          for (let index = uncheckedCellQueue.length - 1; index >= 0; index--) {
+            this.checkForRule2(grid, uncheckedCellQueue[index].i, uncheckedCellQueue[index].j);
+          }}
+        })
+        .then(_ => {
+          if(AIsolvedCount[0]!=0) this.checkForRule3(grid, uncheckedCellQueue);
+        })
+        .then(_ => {
+          // console.log(AIsolvedCount[1], AIsolvedCount[0]);
+          //if  none of the 1st,2nd,3rd rules are not working then
+          if (AIsolvedCount[1] == AIsolvedCount[0] || AIsolvedCount[0]==0) {
+            let unrevealedElements = [].concat(...grid);
+            unrevealedElements = unrevealedElements
+              .filter(comparer([...revealedArray]))
+              .filter(comparer([...confirmedBombs]));
+            if (
+              unrevealedElements.length > sqrt(rows * cols) &&
+              confirmedBombs.length < noOfBombs - sqrt(noOfBombs * 2)
+            ) {
+              console.log("random");
+              this.heuristic1(grid, unrevealedElements);
+            } else {
+              console.log("final");
+              this.checkForRule4(grid, unrevealedElements, uncheckedCellQueue);
+            }
+          }
+          AIsolvedCount[1] = AIsolvedCount[0];
+        }).then(_=>{
+          if(!isGameOver)
+          setTimeout(() => {
+            this.beginSolving()
+          }, 500);
+        })
+  }
+
   this.checkForRule1 = (grid, i, j) => {
     if ((i || i == 0) && (j || j == 0)) {
       let unRevealedNeighbours = calculateUnrevealedNeighbours(grid, i, j);

@@ -20,7 +20,7 @@ function Cell(i, j, w) {
   this.isMine = false;
   this.isRevealed = false;
   this.isMineActive = false;
-  this.isQueued = false
+  this.isQueued = false;
 
   this.neighbourCount = 0;
 
@@ -56,22 +56,23 @@ function Cell(i, j, w) {
   this.contains = (x, y) => x > this.x && x < this.x + this.w && y > this.y && y < this.y + this.w;
 
   this.reveal = () => {
-    this.isRevealed = true;
-    revealedArray.push(grid[this.i][this.j])
+    if (!this.isMine && !this.isRevealed) {
+      this.isRevealed = true;
+      revealedArray.push(grid[this.i][this.j]);
+    }
     setTimeout(() => {
-      if (revealedArray.length + mineCount == rows * cols) alert("Congratulations You Won");
-      else if(this.isMine){
+      declareIfWin()
+      if (this.isMine) {
         this.isMineActive = true;
-            gameOver();
+        gameOver();
       }
     }, 10);
     if (this.neighbourCount == 0) {
       // flood fill time
       this.floodFill();
-    }
-    else {
-      uncheckedCellQueue.push(grid[i][j])
-      this.isQueued = true
+    } else {
+      uncheckedCellQueue.push(grid[i][j]);
+      this.isQueued = true;
     }
   };
   this.floodFill = () => {
@@ -88,15 +89,15 @@ function Cell(i, j, w) {
       }
     }
   };
-  this.surroundingFlags=()=>{
-    let flagCount = 0
+  this.surroundingFlags = () => {
+    let flagCount = 0;
     for (let x = -1; x < 2; x++) {
       for (let y = -1; y < 2; y++) {
-        if (grid[i + x] &&grid[i + x][y + j] && grid[i + x][y + j].isFlagged) {
-          flagCount++
+        if (grid[i + x] && grid[i + x][y + j] && grid[i + x][y + j].isFlagged) {
+          flagCount++;
         }
       }
     }
     return flagCount;
-  }
+  };
 }
