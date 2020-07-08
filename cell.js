@@ -66,10 +66,13 @@ function Cell(i, j, w) {
         this.isMineActive = true;
         switch (source) {
           case "random":
-            finalResult[0] = "Loss due to random selection";
+            finalResult[gameNumber] = "Loss due to random selection";
+            continuousAI ?results.lossesDueToRandom++:''
             break;
           default:
-            if (guessedElements.length != 0) finalResult[0] = "Loss due to guessing in final positions";
+            if (guessedElements.length != 0) {
+              continuousAI ?results.lossesDueToGuess++:''
+              finalResult[gameNumber] = "Loss due to guessing in final positions";}
             break;
         }
         gameOver();

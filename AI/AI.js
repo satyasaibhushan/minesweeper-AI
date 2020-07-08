@@ -30,8 +30,8 @@ function AI() {
               .filter(comparer([...revealedArray]))
               .filter(comparer([...confirmedBombs]));
             if (
-              unrevealedElements.length > sqrt(rows * cols) &&
-              confirmedBombs.length < noOfBombs - sqrt(noOfBombs)
+              unrevealedElements.length > sqrt(rows * cols*2) &&
+              confirmedBombs.length < noOfBombs - sqrt(noOfBombs*1.2)
             ) {
               console.log("random");
               this.heuristic1(grid, unrevealedElements);
@@ -45,7 +45,7 @@ function AI() {
           if(!isGameOver && isAISolving)
           setTimeout(() => {
            if(isAISolving) this.beginSolving()
-          }, 500);
+          },continuousAI ?0:200);
         })
   }
 

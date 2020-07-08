@@ -4,7 +4,7 @@ let grid,
   mineCount,
   remainingFlags = 0;
 let w = 30;
-let Minefactor = 0.22;
+let Minefactor = 0.1;
 let noOfBombs = 0;
 let tileImg, emptyTile, bombImg, flagImg;
 let isGameOver = false;
@@ -19,6 +19,11 @@ let isAlerted = false;
 let activateAI,
   isAISolving = false;
 let finalResult = [];
+let gameNumber = 0;
+let continuousAI = false;
+let results = { winsCount: 0, lossesDueToRandom: 0, lossesDueToGuess: 0 };
+let testCount = 100;
+
 function preload() {
   tileImg = loadImage("../src/tile.png");
   emptyTile = loadImage("../src/tile1.png");
@@ -43,24 +48,23 @@ function setup() {
   createCanvas(601, 601);
   activateAI = createButton("Activate Ai");
   activateAI.mousePressed(_ => {
-    let ai = new AI();
-    isAISolving = true;
-    ai.beginSolving(ai);
-    activateAI.hide();
-    if (confirmedBombs.length > 0) {
-      confirmedBombs.forEach(ele => {
-        ele.isFlagged = false;
-      });
-      confirmedBombs = [];
-      remainingFlags = floor(noOfBombs);
-    }
+    isAISolving ? " " : initiateAI();
   });
   col = color(127, 0.5);
   activateAI.style("background-color", col);
   activateAI.style("outline-width", 0);
   activateAI.elt.className = "activateButton";
 
-  frameRate(5);
+  activateContinuousAI = createButton("Run "+testCount+" tests for AI");
+  activateContinuousAI.mousePressed(_ => {
+    continuousAI = true;
+    initiateAI();
+  });
+  activateContinuousAI.style("background-color", col);
+  activateContinuousAI.style("outline-width", 0);
+  activateContinuousAI.elt.className = "activateButton multipleAI";
+
+  continuousAI ? "" : frameRate(5);
   cols = floor(width / w);
   rows = floor(height / w);
   noOfBombs = Minefactor * rows * cols;
@@ -73,6 +77,7 @@ function setup() {
 }
 
 function gameOver() {
+  isAISolving = false;
   for (let i = 0; i < cols; i++) {
     for (let j = 0; j < rows; j++) {
       grid[i][j].isFlagged ? (grid[i][j].isFlagged = false) : "";
@@ -80,26 +85,47 @@ function gameOver() {
       isGameOver = true;
     }
   }
+  if (results.winsCount + results.lossesDueToGuess + results.lossesDueToRandom < testCount && continuousAI) {
+    setTimeout(() => {
+      newGame();
+      gameNumber++;
+      initiateAI();
+    }, 0);
+  } else if (results.winsCount + results.lossesDueToGuess + results.lossesDueToRandom > testCount) console.log(results);
 }
 function declareIfWin() {
   if (revealedArray.length + confirmedBombs.length == rows * cols && !isGameOver) {
     isGameOver = true;
-    setTimeout(() => {
-      if (isAlerted === false) {
-        alert("Congratulations You Won");
-        isAlerted = true;
-        finalResult[0] = "Win";
-      }
-    }, 500);
+    isAISolving = false;
+    setTimeout(
+      () => {
+        if (isAlerted === false) {
+          continuousAI ? "" : alert("Congratulations You Won");
+          isAlerted = true;
+          finalResult[gameNumber] = "Win";
+          results.winsCount++;
+          if (results.winsCount + results.lossesDueToGuess + results.lossesDueToRandom < testCount && continuousAI) {
+            setTimeout(() => {
+              newGame();
+              gameNumber++;
+              initiateAI();
+            }, 0);
+          } else if (results.winsCount + results.lossesDueToGuess + results.lossesDueToRandom > testCount)
+            console.log(results);
+        }
+      },
+      continuousAI ? 0 : 100
+    );
   }
 }
 
 function newGame() {
   isGameOver = false;
-  (revealedArray = []), (confirmedBombs = []), (uncheckedCellQueue = []),(guessedElements = []);
+  (revealedArray = []), (confirmedBombs = []), (uncheckedCellQueue = []), (guessedElements = []);
   AIsolvedCount = [0];
   isAlerted = false;
   activateAI.show();
+  activateContinuousAI.show()
   isAISolving = false;
 
   for (let i = 0; i < cols; i++) {
@@ -126,6 +152,22 @@ function newGame() {
   }
   remainingFlags = floor(noOfBombs);
   flagDiv.elt.innerHTML = "No of flags left : " + remainingFlags;
+}
+
+function initiateAI() {
+  let ai = new AI();
+  isAISolving = true;
+  ai.beginSolving(ai);
+  activateAI.hide();
+  activateContinuousAI.hide();
+
+  if (confirmedBombs.length > 0 && confirmedBombs.length < noOfBombs) {
+    confirmedBombs.forEach(ele => {
+      ele.isFlagged = false;
+    });
+    confirmedBombs = [];
+    remainingFlags = floor(noOfBombs);
+  }
 }
 
 function mousePressed(e) {

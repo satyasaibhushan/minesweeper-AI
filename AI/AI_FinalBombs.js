@@ -31,9 +31,7 @@ let checkForFinalBombs = (totalList, totalCount, linksArray, bombCountArray) => 
       results.push(parentArray.concat(remainingPartResults));
     });
   }
-console.log(unionIndices.length)
   if(unionIndices.length[0]===undefined){
-    console.log('hiii')
     remainingPartCombinations(totalCount,unionIndices[0])
   }
   for (let i = unionIndices.length - 1; i >= 0; i--) {
