@@ -42,9 +42,9 @@ function AI() {
           }
           AIsolvedCount[1] = AIsolvedCount[0];
         }).then(_=>{
-          if(!isGameOver)
+          if(!isGameOver && isAISolving)
           setTimeout(() => {
-            this.beginSolving()
+           if(isAISolving) this.beginSolving()
           }, 500);
         })
   }

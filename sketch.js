@@ -15,8 +15,8 @@ let revealedArray = [],
   uncheckedCellQueue = [];
 let AIsolvedCount = [0];
 let isAlerted = false;
-
-let trackMouse = false;
+let activateAI,
+  isAISolving = false;
 
 function preload() {
   tileImg = loadImage("../src/tile.png");
@@ -33,12 +33,26 @@ function setup() {
   flagDiv.elt.className = "topBarText";
   topBar.elt.append(flagDiv.elt);
 
+  refreshBtn = document.createElement("IMG");
+  refreshBtn.src = "../src/refresh.svg";
+  refreshBtn.height = 20;
+  refreshBtn.className = "refreshImage";
+  topBar.elt.append(refreshBtn);
+
   createCanvas(601, 601);
-  let activateAI = createButton("Activate Ai");
+  activateAI = createButton("Activate Ai");
   activateAI.mousePressed(_ => {
     let ai = new AI();
+    isAISolving = true;
     ai.beginSolving(ai);
-    activateAI.hide()
+    activateAI.hide();
+    if (confirmedBombs.length > 0) {
+      confirmedBombs.forEach(ele => {
+        ele.isFlagged = false;
+      });
+      confirmedBombs = [];
+      remainingFlags = floor(noOfBombs);
+    }
   });
   col = color(127, 0.5);
   activateAI.style("background-color", col);
@@ -53,6 +67,38 @@ function setup() {
   for (let i = 0; i < grid.length; i++) {
     grid[i] = new Array(rows);
   }
+
+  newGame();
+}
+
+function gameOver() {
+  for (let i = 0; i < cols; i++) {
+    for (let j = 0; j < rows; j++) {
+      grid[i][j].isFlagged ? (grid[i][j].isFlagged = false) : "";
+      grid[i][j].isMine ? (grid[i][j].isRevealed = true) : "";
+      isGameOver = true;
+    }
+  }
+}
+function declareIfWin() {
+  if (revealedArray.length + confirmedBombs.length == rows * cols && !isGameOver) {
+    isGameOver = true;
+    setTimeout(() => {
+      if (isAlerted === false) {
+        alert("Congratulations You Won");
+        isAlerted = true;
+      }
+    }, 500);
+  }
+}
+
+function newGame() {
+  isGameOver = false;
+  (revealedArray = []), (confirmedBombs = []), (uncheckedCellQueue = []);
+  AIsolvedCount = [0];
+  isAlerted = false;
+  activateAI.show();
+  isAISolving = false;
 
   for (let i = 0; i < cols; i++) {
     for (let j = 0; j < rows; j++) {
@@ -80,28 +126,10 @@ function setup() {
   flagDiv.elt.innerHTML = "No of flags left : " + remainingFlags;
 }
 
-function gameOver() {
-  for (let i = 0; i < cols; i++) {
-    for (let j = 0; j < rows; j++) {
-      grid[i][j].isFlagged ? (grid[i][j].isFlagged = false) : "";
-      grid[i][j].isMine ? (grid[i][j].isRevealed = true) : "";
-      isGameOver = true;
-    }
-  }
-}
-function declareIfWin() {
-  if (revealedArray.length + confirmedBombs.length == rows * cols && !isGameOver) {
-    isGameOver = true;
-    setTimeout(() => {
-      if (isAlerted === false) {
-        alert("Congratulations You Won");
-        isAlerted = true;
-      }
-    }, 500);
-  }
-}
-
 function mousePressed(e) {
+  if (e.target === refreshBtn) {
+    newGame();
+  }
   for (let i = 0; i < cols; i++) {
     for (let j = 0; j < rows; j++) {
       if (grid[i][j].contains(mouseX, mouseY) && !isGameOver) {
