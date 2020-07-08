@@ -4,7 +4,7 @@ let grid,
   mineCount,
   remainingFlags = 0;
 let w = 30;
-let Minefactor = 0.15;
+let Minefactor = 0.22;
 let noOfBombs = 0;
 let tileImg, emptyTile, bombImg, flagImg;
 let isGameOver = false;
@@ -12,12 +12,13 @@ let font;
 let flagDiv;
 let revealedArray = [],
   confirmedBombs = [],
-  uncheckedCellQueue = [];
+  uncheckedCellQueue = [],
+  guessedElements = [];
 let AIsolvedCount = [0];
 let isAlerted = false;
 let activateAI,
   isAISolving = false;
-
+let finalResult = [];
 function preload() {
   tileImg = loadImage("../src/tile.png");
   emptyTile = loadImage("../src/tile1.png");
@@ -87,6 +88,7 @@ function declareIfWin() {
       if (isAlerted === false) {
         alert("Congratulations You Won");
         isAlerted = true;
+        finalResult[0] = "Win";
       }
     }, 500);
   }
@@ -94,7 +96,7 @@ function declareIfWin() {
 
 function newGame() {
   isGameOver = false;
-  (revealedArray = []), (confirmedBombs = []), (uncheckedCellQueue = []);
+  (revealedArray = []), (confirmedBombs = []), (uncheckedCellQueue = []),(guessedElements = []);
   AIsolvedCount = [0];
   isAlerted = false;
   activateAI.show();

@@ -14,6 +14,28 @@ let checkForFinalBombs = (totalList, totalCount, linksArray, bombCountArray) => 
   lists.forEach((ele, i) => {
     scores[i] = 0;
   });
+
+  let remainingPartCombinations=(count,parentArray)=>{
+    k_combinations(remainingPart, count).forEach(combination => {
+      let remainingPartResults = [];
+      difference(remainingPart, combination).forEach((ele, i) => {
+        remainingPart.forEach((element, j) => {
+          if (objectEquality(ele, element)) remainingPartResults[j] = false;
+        });
+      });
+      combination.forEach(ele => {
+        remainingPart.forEach((element, i) => {
+          if (objectEquality(ele, element)) remainingPartResults[i] = true;
+        });
+      });
+      results.push(parentArray.concat(remainingPartResults));
+    });
+  }
+console.log(unionIndices.length)
+  if(unionIndices.length[0]===undefined){
+    console.log('hiii')
+    remainingPartCombinations(totalCount,unionIndices[0])
+  }
   for (let i = unionIndices.length - 1; i >= 0; i--) {
     const possibility = unionIndices[i];
     let counts = {};
@@ -30,20 +52,7 @@ let checkForFinalBombs = (totalList, totalCount, linksArray, bombCountArray) => 
       });
       results.push(remainingPartResult);
     } else {
-      k_combinations(remainingPart, totalCount - counts[true]).forEach(combination => {
-        let remainingPartResults = [];
-        difference(remainingPart, combination).forEach((ele, i) => {
-          remainingPart.forEach((element, j) => {
-            if (objectEquality(ele, element)) remainingPartResults[j] = false;
-          });
-        });
-        combination.forEach(ele => {
-          remainingPart.forEach((element, i) => {
-            if (objectEquality(ele, element)) remainingPartResults[i] = true;
-          });
-        });
-        results.push(unionIndices[i].concat(remainingPartResults));
-      });
+      remainingPartCombinations(totalCount - counts[true],unionIndices[i])
     }
   }
 
@@ -101,6 +110,7 @@ let checkForFinalBombs = (totalList, totalCount, linksArray, bombCountArray) => 
             scores[ele]<0.5 ? deductions.push(false):deductions.push(true)
         })
           let randomIndex = floor(random(0,deductions.length-0.000001))
+          guessedElements.push([finalList[randomIndex]])
           return [[deductions[randomIndex]],[finalList[randomIndex]]]
       }
     })

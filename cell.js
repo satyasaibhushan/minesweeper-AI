@@ -55,15 +55,23 @@ function Cell(i, j, w) {
 
   this.contains = (x, y) => x > this.x && x < this.x + this.w && y > this.y && y < this.y + this.w;
 
-  this.reveal = () => {
+  this.reveal = source => {
     if (!this.isMine && !this.isRevealed) {
       this.isRevealed = true;
       revealedArray.push(grid[this.i][this.j]);
     }
     setTimeout(() => {
-      declareIfWin()
+      declareIfWin();
       if (this.isMine) {
         this.isMineActive = true;
+        switch (source) {
+          case "random":
+            finalResult[0] = "Loss due to random selection";
+            break;
+          default:
+            if (guessedElements.length != 0) finalResult[0] = "Loss due to guessing in final positions";
+            break;
+        }
         gameOver();
       }
     }, 10);

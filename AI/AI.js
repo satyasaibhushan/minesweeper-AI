@@ -31,7 +31,7 @@ function AI() {
               .filter(comparer([...confirmedBombs]));
             if (
               unrevealedElements.length > sqrt(rows * cols) &&
-              confirmedBombs.length < noOfBombs - sqrt(noOfBombs * 2)
+              confirmedBombs.length < noOfBombs - sqrt(noOfBombs)
             ) {
               console.log("random");
               this.heuristic1(grid, unrevealedElements);
@@ -124,8 +124,9 @@ function AI() {
       }
     }
     if (revealedNeighbours == 0) {
-      element.reveal();
+      element.reveal("random");
       AIsolvedCount[0]++;
+      if(isGameOver) finalResult[0] ="Loss due to random selection"
     } else {
       this.heuristic1(grid, list, index);
     }
@@ -154,8 +155,16 @@ function AI() {
       );
     });
     if (noOfBombs - confirmedBombs.length == 0) {
-      isGameOver = true;
-    } else {
+      list.forEach(ele=>{
+        grid[ele.i][ele.j].reveal()
+      })
+    }
+    else if(noOfBombs - confirmedBombs.length == list.length){
+      list.forEach(ele=>{
+        setFlagAt(ele.i, ele.j, false);
+      })
+    }
+     else {
       let result = checkForFinalBombs(list, unSolvedBombs, uniqueArray, bombCount);
       if (!result) return;
       else {
