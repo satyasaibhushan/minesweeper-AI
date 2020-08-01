@@ -14,6 +14,7 @@ let revealedArray = [],
   confirmedBombs = [],
   uncheckedCellQueue = [],
   guessedElements = [];
+  
 let AIsolvedCount = [0];
 let isAlerted = false;
 let activateAI,
@@ -25,11 +26,11 @@ let results = { winsCount: 0, lossesDueToRandom: 0, lossesDueToGuess: 0 };
 let testCount = 100;
 
 function preload() {
-  tileImg = loadImage("../src/tile.png");
-  emptyTile = loadImage("../src/tile1.png");
-  bombImg = loadImage("../src/bomb.png");
-  flagImg = loadImage("../src/flag.png");
-  font = loadFont("../src/font.ttf");
+  tileImg = loadImage("./src/tile.png");
+  emptyTile = loadImage("./src/tile1.png");
+  bombImg = loadImage("./src/bomb.png");
+  flagImg = loadImage("./src/flag.png");
+  font = loadFont("./src/font.ttf");
 }
 function setup() {
   fill(200);
