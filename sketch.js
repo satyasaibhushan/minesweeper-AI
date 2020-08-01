@@ -41,7 +41,7 @@ function setup() {
   topBar.elt.append(flagDiv.elt);
 
   refreshBtn = document.createElement("IMG");
-  refreshBtn.src = "../src/refresh.svg";
+  refreshBtn.src = "./src/refresh.svg";
   refreshBtn.height = 20;
   refreshBtn.className = "refreshImage";
   topBar.elt.append(refreshBtn);
