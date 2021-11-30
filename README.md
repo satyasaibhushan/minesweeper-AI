@@ -3,7 +3,7 @@ A complete minesweeper game using p5 js
 
 ##### You can either play it in the single player mode or you can ask the AI to solve it
 ##### You can place the flag on an element by clicking on element while pressing the metakey ( command on mac,ctrl on windows )
-#### You can play it [here](https://satyasaibhushan.github.io/minesweeper) 
+#### You can play it [here](https://satyasaibhushan.github.io/minesweeper-AI/) 
   
 ##### The AI created here solves the puzzle using 3 rules and a heuristic
 
