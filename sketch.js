@@ -75,6 +75,7 @@ function setup() {
   }
 
   newGame();
+  setupJev();
 }
 
 function gameOver() {
@@ -121,6 +122,8 @@ function declareIfWin() {
 }
 
 function newGame() {
+  jevSnapshot = null;
+  jevEstimates.clear();
   isGameOver = false;
   (revealedArray = []), (confirmedBombs = []), (uncheckedCellQueue = []), (guessedElements = []);
   AIsolvedCount = [0];
@@ -156,6 +159,7 @@ function newGame() {
 }
 
 function initiateAI() {
+  if (jevRunning) return;
   let ai = new AI();
   isAISolving = true;
   ai.beginSolving(ai);
@@ -172,6 +176,7 @@ function initiateAI() {
 }
 
 function mousePressed(e) {
+  if (jevRunning) return;
   if (e.target === refreshBtn) {
     newGame();
   }
@@ -215,6 +220,15 @@ function draw() {
   for (let i = 0; i < cols; i++) {
     for (let j = 0; j < rows; j++) {
       grid[i][j].show();
+      const estimate = jevEstimates.get(`${i},${j}`);
+      if (estimate !== undefined && !grid[i][j].isRevealed) {
+        push(); noStroke(); fill(0); textAlign(CENTER, BOTTOM); textSize(Math.max(8, w / 4));
+        text(estimate.deduction === 'mine' ? 'M' : estimate.deduction === 'safe' ? 'S' : `${Math.round(estimate.mineProbability * 100)}%`, (i + 0.5) * w, (j + 1) * w - 1); pop();
+      }
+      if (jevSelected && jevSelected.x === i && jevSelected.y === j) {
+        push(); noFill(); stroke(0, 160, 90); strokeWeight(3);
+        rect(i * w + 2, j * w + 2, w - 4, w - 4); pop();
+      }
     }
   }
 }
