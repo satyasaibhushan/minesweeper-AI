@@ -27,3 +27,27 @@ A complete minesweeper game using p5 js
 ###### You can also test the program by simulating 100(say)games and then you can view the results in the console by searching an object named results showing the various wins / losses number and a reason if lost
 
 ###### The default value of the mine factor is 0.1 i.e, 1 bomb per 10 squares. You can vary the value within a reasonable range(say 0.7 to 1.7)
+
+## Demo
+
+[Product overview](docs/index.html) · [Original source](index.html)
+
+[![Product recording](docs/demo/demo.gif)](docs/demo/demo.webm)
+
+[Watch the demo](docs/demo/demo.mp4). Recorded from the original game with its built-in rule-based solver. This recording does not call JEV.
+
+## Tech stack
+
+p5.js, JavaScript, HTML, and CSS. The p5 libraries are included in this repository.
+
+## Run locally
+
+From the repository root, run `python3 -m http.server 8000`, then open `http://localhost:8000`. No build or account is required.
+
+## Reproduce the preview
+
+Open the game and click **Activate Ai** to run the built-in solver. Reload or use the refresh icon to start another board. The JEV integration lives on the separate `jev-solver` branch.
+
+## Status
+
+An earlier learning project, preserved with its original rendering and behavior. The preview is a recording of this source, not a redesigned interface.
